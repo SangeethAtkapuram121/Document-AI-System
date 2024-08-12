@@ -1,0 +1,5 @@
+pdfplumber
+transformers
+pandas
+openpyxl
+torch
