@@ -1,0 +1,81 @@
+import pdfplumber
+import pandas as pd
+from transformers import DonutTokenizer, DonutForConditionalGeneration
+from transformers import pipeline
+
+def extract_text_from_pdf(pdf_path):
+    """
+    Extract text from a PDF file using pdfplumber.
+    
+    Args:
+        pdf_path (str): Path to the PDF file.
+        
+    Returns:
+        str: Extracted text from the PDF.
+    """
+    text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text += page.extract_text() + "\n"
+    return text
+
+def process_with_model(text):
+    """
+    Process the extracted text using a Hugging Face model.
+    
+    Args:
+        text (str): The text to be processed.
+        
+    Returns:
+        dict: Processed results from the model.
+    """
+    # Load pre-trained model and tokenizer
+    tokenizer = DonutTokenizer.from_pretrained('huggingface/donut')
+    model = DonutForConditionalGeneration.from_pretrained('huggingface/donut')
+
+    # Create pipeline
+    nlp = pipeline('text-classification', model=model, tokenizer=tokenizer)
+
+    # Process text
+    results = nlp(text)
+    return results
+
+def save_to_excel(results, output_path):
+    """
+    Save the processed results to an Excel file.
+    
+    Args:
+        results (dict): Processed results to be saved.
+        output_path (str): Path to the output Excel file.
+    """
+    df = pd.DataFrame(results)
+    df.to_excel(output_path, index=False)
+
+def main(pdf_path, output_path):
+    """
+    Main function to extract text from a PDF, process it with the model, and save results to Excel.
+    
+    Args:
+        pdf_path (str): Path to the input PDF file.
+        output_path (str): Path to the output Excel file.
+    """
+    print("Extracting text from PDF...")
+    text = extract_text_from_pdf(pdf_path)
+    
+    print("Processing text with model...")
+    results = process_with_model(text)
+    
+    print(f"Saving results to {output_path}...")
+    save_to_excel(results, output_path)
+    
+    print("Process completed!")
+
+if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Extract and process text from a PDF and save to Excel.")
+    parser.add_argument('pdf_path', type=str, help='Path to the input PDF file.')
+    parser.add_argument('output_path', type=str, help='Path to the output Excel file.')
+    
+    args = parser.parse_args()
+    main(args.pdf_path, args.output_path)
