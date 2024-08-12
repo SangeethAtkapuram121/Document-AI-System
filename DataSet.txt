@@ -1,0 +1,8 @@
+DataSet :
+
+from datasets import load_dataset
+
+# Load the dataset
+dataset = load_dataset('naver-clova-ix/cord-v2')
+
+By using the dataset, we can access the dataset in the notebook.
